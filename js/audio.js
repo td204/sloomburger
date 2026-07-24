@@ -1,7 +1,8 @@
 /* Sloomburger — vrolijke bliepjes via WebAudio, geen geluidsbestanden nodig */
 window.SND = (function () {
   let ctx = null;
-  const api = { muted: false };
+  // drie losse schakelaars: effecten, muziek en trillen
+  const api = { sfxAan: true, muziekAan: true, trillenAan: true };
 
   function ac() {
     if (!ctx) {
@@ -15,7 +16,7 @@ window.SND = (function () {
 
   // Eén nootje met een zachte envelope
   function tone(freq, dur, delay, type, vol, slideTo) {
-    if (api.muted) return;
+    if (!api.sfxAan) return;
     const c = ac();
     if (!c) return;
     const t0 = c.currentTime + (delay || 0);
@@ -89,7 +90,7 @@ window.SND = (function () {
     const s = STIJLEN[stijl];
     const stapDur = 60 / s.bpm / 2; // achtste noten
     while (volgende < c.currentTime + 0.3) {
-      if (!api.muted) {
+      if (api.muziekAan) {
         const i = stap % 32;
         // melodie
         noot(c, freq(MELODIE[i] + s.trans), volgende, stapDur * 0.85, s.golf, s.vol);
@@ -134,36 +135,50 @@ window.SND = (function () {
     else if (ctx) volgende = Math.max(volgende, ctx.currentTime + 0.05);
   };
 
+  // trillen (werkt op telefoons/tablets die de Vibration API kennen, zoals Android)
+  api.tril = function (patroon) {
+    if (!api.trillenAan) return;
+    try {
+      if (navigator.vibrate) navigator.vibrate(patroon);
+    } catch (e) { /* geen trilmotor: geen probleem */ }
+  };
+
   api.click = function () { tone(600, 0.07, 0, 'square', 0.08); };
   api.coin = function () {
     tone(988, 0.07, 0, 'square', 0.12);
     tone(1319, 0.12, 0.07, 'square', 0.12);
+    api.tril(12);
   };
   api.jump = function () { tone(300, 0.18, 0, 'square', 0.1, 620); };
-  api.grab = function () { tone(500, 0.1, 0, 'triangle', 0.14, 700); };
-  api.pop = function () { tone(420, 0.09, 0, 'triangle', 0.16, 900); };
+  api.grab = function () { tone(500, 0.1, 0, 'triangle', 0.14, 700); api.tril(15); };
+  api.pop = function () { tone(420, 0.09, 0, 'triangle', 0.16, 900); api.tril(15); };
   api.bump = function () {
     tone(200, 0.2, 0, 'sawtooth', 0.12, 90);
+    api.tril(90);
   };
   api.wrong = function () { tone(260, 0.12, 0, 'square', 0.08, 180); };
   api.serve = function () {
     tone(660, 0.09, 0, 'triangle', 0.14);
     tone(880, 0.09, 0.09, 'triangle', 0.14);
     tone(1100, 0.16, 0.18, 'triangle', 0.14);
+    api.tril([40, 60, 40]);
   };
   api.yay = function () {
     [523, 659, 784, 1047].forEach(function (f, i) {
       tone(f, 0.14, i * 0.09, 'triangle', 0.15);
     });
+    api.tril([50, 50, 50]);
   };
   api.fanfare = function () {
     [523, 523, 659, 784, 659, 784, 1047].forEach(function (f, i) {
       tone(f, 0.18, i * 0.14, 'triangle', 0.16);
     });
     tone(1319, 0.5, 7 * 0.14, 'triangle', 0.16);
+    api.tril([60, 80, 60, 80, 150]);
   };
   api.surprise = function () {
     [700, 900, 1200].forEach(function (f, i) { tone(f, 0.08, i * 0.06, 'square', 0.1); });
+    api.tril([25, 35, 25]);
   };
 
   return api;

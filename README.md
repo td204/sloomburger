@@ -1,5 +1,7 @@
 # Sloomburger 🦥🍔
 
+**⭐ Game by Sofie ⭐**
+
 Een HTML5-game gebaseerd op een echte kindertekening! Help **Sloom de luiaard** —
 de sloomste luiaard van de jungle — zijn grote droom waar te maken: een eigen
 **burger restaurant** openen.

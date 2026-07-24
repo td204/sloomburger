@@ -20,17 +20,33 @@ window.SCENES = window.SCENES || {};
           label: String(i + 1), size: 34, idx: i
         });
       }
-      this.btns.snd = { x: W - 62, y: 12, w: 46, h: 42, label: st.muted ? '🔇' : '🔊', size: 20 };
+      this.btns.muziek = { x: W - 174, y: 12, w: 46, h: 42, label: '🎵', size: 20 };
+      this.btns.sfx = { x: W - 118, y: 12, w: 46, h: 42, label: '🔊', size: 20 };
+      this.btns.tril = { x: W - 62, y: 12, w: 46, h: 42, label: '📳', size: 20 };
     },
     update: function (dt) { this.t += dt; },
     pointerDown: function (x, y) {
       const G = window.Game, UIh = window.UI;
-      if (UIh.hit(x, y, this.btns.snd)) {
-        G.state.muted = !G.state.muted;
-        SND.muted = G.state.muted;
-        this.btns.snd.label = G.state.muted ? '🔇' : '🔊';
+      if (UIh.hit(x, y, this.btns.muziek)) {
+        G.state.muziek = !G.state.muziek;
+        SND.muziekAan = G.state.muziek;
         G.save();
         SND.click();
+        return;
+      }
+      if (UIh.hit(x, y, this.btns.sfx)) {
+        G.state.effecten = !G.state.effecten;
+        SND.sfxAan = G.state.effecten;
+        G.save();
+        SND.click();
+        return;
+      }
+      if (UIh.hit(x, y, this.btns.tril)) {
+        G.state.trillen = !G.state.trillen;
+        SND.trillenAan = G.state.trillen;
+        G.save();
+        SND.click();
+        if (G.state.trillen) SND.tril(60); // proef-trilling
         return;
       }
       if (UIh.hit(x, y, this.btns.play)) {
@@ -91,7 +107,7 @@ window.SCENES = window.SCENES || {};
       c.fillText('Sloomburger', 0, -6);
       c.fillStyle = ART.OUT;
       ART.font(c, 17);
-      c.fillText('het spel van Sloom de luiaard 🦥', 0, 30);
+      c.fillText('⭐ Game by Sofie ⭐', 0, 30);
       c.restore();
 
       // knoppen
@@ -139,7 +155,13 @@ window.SCENES = window.SCENES || {};
       ART.crown(c, 138, 38, 0.55);
       c.restore();
 
-      UI.button(c, this.btns.snd);
+      const st2 = window.Game.state;
+      this.btns.muziek.off = !st2.muziek;
+      this.btns.sfx.off = !st2.effecten;
+      this.btns.tril.off = !st2.trillen;
+      UI.button(c, this.btns.muziek);
+      UI.button(c, this.btns.sfx);
+      UI.button(c, this.btns.tril);
     }
   };
 

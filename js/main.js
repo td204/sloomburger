@@ -26,13 +26,19 @@
       unlocked: 1,
       items: { hoed: false, sleutel: false, kroon: false },
       seenIntro: false,
-      muted: false
+      muziek: true,
+      effecten: true,
+      trillen: true
     };
   }
   function load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
-      if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+      if (raw) {
+        const st = Object.assign(defaultState(), JSON.parse(raw));
+        if (st.muted) { st.muziek = false; st.effecten = false; delete st.muted; } // oude opslag
+        return st;
+      }
     } catch (e) { /* opslag niet beschikbaar: geen probleem */ }
     return defaultState();
   }
@@ -126,7 +132,7 @@
 
   /* ---------- UI-helpers ---------- */
   const UI = {
-    // knop: {x, y, w, h, label, icon}
+    // knop: {x, y, w, h, label, icon, off (doorgestreept = uitgeschakeld)}
     button: function (c, b, active) {
       c.save();
       c.translate(b.x + b.w / 2, b.y + b.h / 2);
@@ -136,15 +142,24 @@
       c.fillStyle = 'rgba(0,0,0,.18)';
       c.fill();
       ART.rr(c, -b.w / 2, -b.h / 2, b.w, b.h, 16);
-      c.fillStyle = b.fill || '#fff6d8';
+      c.fillStyle = b.off ? '#e5dcc3' : (b.fill || '#fff6d8');
       c.fill();
       ART.pen(c, 4.5);
       c.stroke();
+      if (b.off) c.globalAlpha = 0.45;
       c.fillStyle = b.color || ART.OUT;
       ART.font(c, b.size || 26);
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       c.fillText(b.label, 0, 2);
+      c.globalAlpha = 1;
+      if (b.off) {
+        ART.pen(c, 4, '#c0392b');
+        c.beginPath();
+        c.moveTo(-b.w / 2 + 10, b.h / 2 - 8);
+        c.lineTo(b.w / 2 - 10, -b.h / 2 + 8);
+        c.stroke();
+      }
       c.restore();
     },
     hit: function (px, py, b) {
@@ -186,18 +201,27 @@
       c.textBaseline = 'middle';
       c.fillText(String(sessionCoins), 62, 35);
       c.restore();
-      // home + geluid rechtsboven
-      UI.homeBtn = { x: W - 118, y: 12, w: 46, h: 42, label: '🏠', size: 22 };
-      UI.sndBtn = { x: W - 62, y: 12, w: 46, h: 42, label: Game.state.muted ? '🔇' : '🔊', size: 20 };
+      // home + muziek + effecten rechtsboven
+      UI.homeBtn = { x: W - 174, y: 12, w: 46, h: 42, label: '🏠', size: 22 };
+      UI.muziekBtn = { x: W - 118, y: 12, w: 46, h: 42, label: '🎵', size: 20, off: !Game.state.muziek };
+      UI.sfxBtn = { x: W - 62, y: 12, w: 46, h: 42, label: '🔊', size: 20, off: !Game.state.effecten };
       if (!opts.noHome) UI.button(c, UI.homeBtn);
-      UI.button(c, UI.sndBtn);
+      UI.button(c, UI.muziekBtn);
+      UI.button(c, UI.sfxBtn);
     },
     // true als een HUD-knop de tik afving
     hudTap: function (x, y, opts) {
       opts = opts || {};
-      if (UI.sndBtn && UI.hit(x, y, UI.sndBtn)) {
-        Game.state.muted = !Game.state.muted;
-        SND.muted = Game.state.muted;
+      if (UI.muziekBtn && UI.hit(x, y, UI.muziekBtn)) {
+        Game.state.muziek = !Game.state.muziek;
+        SND.muziekAan = Game.state.muziek;
+        Game.save();
+        SND.click();
+        return true;
+      }
+      if (UI.sfxBtn && UI.hit(x, y, UI.sfxBtn)) {
+        Game.state.effecten = !Game.state.effecten;
+        SND.sfxAan = Game.state.effecten;
         Game.save();
         SND.click();
         return true;
@@ -289,7 +313,9 @@
     }
   };
   window.Game = Game;
-  SND.muted = Game.state.muted;
+  SND.muziekAan = Game.state.muziek;
+  SND.sfxAan = Game.state.effecten;
+  SND.trillenAan = Game.state.trillen;
 
   /* ---------- hoofdloop ---------- */
   let last = performance.now();

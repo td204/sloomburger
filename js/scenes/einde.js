@@ -70,7 +70,7 @@ window.SCENES = window.SCENES || {};
       // verhaaltje + score
       if (t >= 1.5) {
         c.save();
-        ART.rr(c, W / 2 - 280, 118, 560, 92, 16);
+        ART.rr(c, W / 2 - 280, 118, 560, 122, 16);
         c.fillStyle = 'rgba(255,251,232,.94)';
         c.fill();
         ART.pen(c, 4);
@@ -79,9 +79,11 @@ window.SCENES = window.SCENES || {};
         ART.font(c, 19);
         c.textAlign = 'center';
         c.fillText('Langzaam maar zeker heeft Sloom zijn droom waargemaakt.', W / 2, 148);
-        ART.font(c, 19);
         const totStars = st.stars[0] + st.stars[1] + st.stars[2];
         c.fillText('Jij hielp hem! Munten: ' + st.coins + '  •  Sterren: ' + totStars + ' van 9', W / 2, 180);
+        c.fillStyle = '#e2554f';
+        ART.font(c, 22);
+        c.fillText('⭐ Game by Sofie ⭐', W / 2, 216);
         c.restore();
 
         this.againBtn = { x: 40, y: H - 76, w: 250, h: 56, label: '↺ Speel opnieuw', size: 22, fill: '#ffd94d' };
