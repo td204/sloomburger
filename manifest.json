@@ -1,0 +1,18 @@
+{
+  "name": "Sloomburger",
+  "short_name": "Sloomburger",
+  "description": "Help Sloom de luiaard zijn eigen burger restaurant te openen!",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#256e50",
+  "theme_color": "#7ec9a3",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
