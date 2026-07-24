@@ -10,6 +10,7 @@ window.SCENES = window.SCENES || {};
   const level1 = {
     enter: function () {
       this.t = 0;
+      SND.muziek('jungle');
       this.px = 120; this.py = GROUND;
       this.vy = 0;
       this.mode = 'ground'; // ground | air | hang

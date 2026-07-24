@@ -12,6 +12,7 @@ window.SCENES = window.SCENES || {};
   const level3 = {
     enter: function () {
       this.t = 0;
+      SND.muziek('keuken');
       this.px = W / 2;
       this.targetX = null;
       this.sessionCoins = 0;

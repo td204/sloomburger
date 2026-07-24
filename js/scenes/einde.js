@@ -10,6 +10,7 @@ window.SCENES = window.SCENES || {};
       this.t = 0;
       this.confettiT = 0;
       window.Input.pads = [];
+      SND.muziek('feest');
       SND.yay();
     },
 

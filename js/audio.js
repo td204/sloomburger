@@ -32,7 +32,107 @@ window.SND = (function () {
     osc.stop(t0 + dur + 0.05);
   }
 
-  api.unlock = function () { ac(); };
+  api.unlock = function () { ac(); startMusic(); };
+
+  /* ---------- 8-bit muziek: een klein stappen-sequencertje ---------- */
+  // Het Sloomburger-deuntje (midi-nootnummers, 4 maten van 8 achtsten)
+  const MELODIE = [
+    72, 76, 79, 76, 81, 79, 76, 72,
+    74, 77, 81, 77, 79, 77, 74, 71,
+    72, 76, 79, 76, 81, 79, 76, 72,
+    79, 81, 83, 84, 79, 76, 74, 72
+  ];
+  const BASROOT = [48, 53, 48, 43]; // C, F, C, G — één grondtoon per maat
+
+  // sfeer per plek in het spel
+  const STIJLEN = {
+    menu:   { bpm: 104, trans: 0,  golf: 'square',   vol: 0.10 },
+    jungle: { bpm: 112, trans: 0,  golf: 'square',   vol: 0.10 },
+    stad:   { bpm: 138, trans: 2,  golf: 'square',   vol: 0.11 },
+    keuken: { bpm: 118, trans: -2, golf: 'triangle', vol: 0.13 },
+    feest:  { bpm: 126, trans: 4,  golf: 'square',   vol: 0.11 }
+  };
+
+  let stijl = null;        // huidige stijl (of null = stil)
+  let timer = null;
+  let stap = 0;
+  let volgende = 0;        // audiotijd van de volgende stap
+  let ruisBuf = null;
+
+  function freq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+  function ruis(c) {
+    if (!ruisBuf) {
+      ruisBuf = c.createBuffer(1, c.sampleRate * 0.05, c.sampleRate);
+      const d = ruisBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return ruisBuf;
+  }
+
+  function noot(c, f, t0, dur, type, vol) {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(c.destination);
+    o.start(t0);
+    o.stop(t0 + dur + 0.03);
+  }
+
+  function plan() {
+    const c = ctx;
+    if (!c || !stijl) return;
+    const s = STIJLEN[stijl];
+    const stapDur = 60 / s.bpm / 2; // achtste noten
+    while (volgende < c.currentTime + 0.3) {
+      if (!api.muted) {
+        const i = stap % 32;
+        // melodie
+        noot(c, freq(MELODIE[i] + s.trans), volgende, stapDur * 0.85, s.golf, s.vol);
+        // bas: bonk op de tellen, om en om grondtoon en kwint
+        if (i % 2 === 0) {
+          const root = BASROOT[(i / 8) | 0] + s.trans;
+          noot(c, freq(i % 4 === 0 ? root : root + 7), volgende, stapDur * 0.9, 'triangle', 0.14);
+        }
+        // hi-hatje van ruis op de offbeats
+        if (i % 2 === 1) {
+          const src = c.createBufferSource();
+          const g = c.createGain();
+          src.buffer = ruis(c);
+          g.gain.setValueAtTime(0.03, volgende);
+          g.gain.exponentialRampToValueAtTime(0.0001, volgende + 0.03);
+          src.connect(g).connect(c.destination);
+          src.start(volgende);
+        }
+      }
+      volgende += stapDur;
+      stap++;
+    }
+  }
+
+  function startMusic() {
+    if (!stijl || !ctx || timer) return;
+    stap = 0;
+    volgende = ctx.currentTime + 0.05;
+    timer = setInterval(plan, 100);
+  }
+
+  // muziek(naam) wisselt van deuntje; muziek(null) zet hem uit
+  api.muziek = function (naam) {
+    if (naam === stijl) return;
+    stijl = naam || null;
+    if (!stijl) {
+      if (timer) { clearInterval(timer); timer = null; }
+      return;
+    }
+    stap = 0;
+    if (ctx && !timer) startMusic();
+    else if (ctx) volgende = Math.max(volgende, ctx.currentTime + 0.05);
+  };
 
   api.click = function () { tone(600, 0.07, 0, 'square', 0.08); };
   api.coin = function () {

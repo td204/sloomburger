@@ -11,6 +11,7 @@ window.SCENES = window.SCENES || {};
   const level2 = {
     enter: function () {
       this.t = 0;
+      SND.muziek('stad');
       this.d = 0;
       this.py = GROUND;
       this.vy = 0;

@@ -10,6 +10,7 @@ window.SCENES = window.SCENES || {};
     btns: {},
     enter: function () {
       this.t = 0;
+      SND.muziek('menu');
       const st = window.Game.state;
       this.btns.play = { x: W / 2 - 130, y: 328, w: 260, h: 64, label: '▶  Spelen', size: 30, fill: '#ffd94d' };
       this.btns.levels = [];
@@ -146,7 +147,7 @@ window.SCENES = window.SCENES || {};
   const intro = {
     page: 0,
     t: 0,
-    enter: function () { this.page = 0; this.t = 0; },
+    enter: function () { this.page = 0; this.t = 0; SND.muziek('menu'); },
     update: function (dt) { this.t += dt; },
     pointerDown: function () {
       SND.click();
